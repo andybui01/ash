@@ -3,8 +3,9 @@ toolchain=aarch64-none-elf
 AS=$(toolchain)-as
 CC=$(toolchain)-gcc
 LD=$(toolchain)-ld
+CPU := cortex-a53
 
-GCC_FLAGS=-ffreestanding -Wall -Werror
+GCC_FLAGS := -mcpu=$(CPU) -mstrict-align -ffreestanding -g3 -O3 -Wall  -Wno-unused-function
 LD_FLAGS=-nostdlib
 LIB_INCLUDE=lib/include
 
@@ -32,7 +33,7 @@ OBJECTS=$(addprefix $(BUILD_DIR)/, $(SRC))
 all: image
 
 simulate: image
-	qemu-system-aarch64 -machine virt -cpu cortex-a57 -kernel $(BUILD_DIR)/$(IMAGE_NAME) \
+	qemu-system-aarch64 -machine virt -cpu $(CPU) -kernel $(BUILD_DIR)/$(IMAGE_NAME) \
                     	-display none \
                     	-serial stdio
 
