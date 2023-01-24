@@ -1,12 +1,14 @@
 # Build
-AS=aarch64-none-elf-as
-CC=aarch64-none-elf-gcc
-LD=aarch64-none-elf-ld
+toolchain=aarch64-none-elf
+AS=$(toolchain)-as
+CC=$(toolchain)-gcc
+LD=$(toolchain)-ld
 
-GCC_FLAGS=-ffreestanding
+GCC_FLAGS=-ffreestanding -Wall -Werror
 LD_FLAGS=-nostdlib
+LIB_INCLUDE=lib/include
 
-LINKER_FILE=src/linker.ld
+LINKER_FILE=core/linker.ld
 
 BUILD_DIR=build
 
@@ -14,7 +16,18 @@ BUILD_DIR=build
 IMAGE_NAME=ash.elf
 
 # Files to compile
-objects = $(addprefix $(BUILD_DIR)/, boot.o main.o)
+SRC=\
+	core/boot.o \
+	core/main.o
+
+SRC+=\
+	lib/abort.o \
+	lib/itoa.o \
+	lib/printf.o \
+	lib/string.o
+
+
+OBJECTS=$(addprefix $(BUILD_DIR)/, $(SRC))
 
 all: image
 
@@ -23,21 +36,20 @@ simulate: image
                     	-display none \
                     	-serial stdio
 
-image: build_dir $(objects)
-	@echo "Linking object files $^"
-	$(LD) $(LD_FLAGS) -T $(LINKER_FILE) $(objects) -o $(BUILD_DIR)/$(IMAGE_NAME)
+image: build_dir $(OBJECTS)
+	$(LD) $(LD_FLAGS) -T $(LINKER_FILE) $(OBJECTS) -o $(BUILD_DIR)/$(IMAGE_NAME)
 	@echo "Compilation done!"
 
-$(BUILD_DIR)/%.o: src/%.s
-	@echo "Compiling $< to $@"
+# Assembly sources
+$(BUILD_DIR)/%.o: %.s
 	$(AS) $< -o $@
-
-$(BUILD_DIR)/%.o: src/%.c
-	@echo "Compiling $< to $@"
-	$(CC) $(GCC_FLAGS) -c $< -o $@
+# C sources
+$(BUILD_DIR)/%.o: %.c
+	$(CC) $(GCC_FLAGS) -I $(LIB_INCLUDE) -c $< -o $@
 
 build_dir:
-	mkdir -p build
+	mkdir -p build/core
+	mkdir -p build/lib
 
 clean:
 	rm -rf build

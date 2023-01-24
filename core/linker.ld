@@ -1,7 +1,7 @@
 ENTRY(_start)
 SECTIONS {
     . = 0x40000000;
-    .startup . : { build/boot.o(.text) }
+    .startup . : { build/core/boot.o(.text) }
     .text : { *(.text) }
     .data : { *(.data) }
     .bss : { *(.bss COMMON) }
