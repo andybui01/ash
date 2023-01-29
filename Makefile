@@ -14,7 +14,7 @@ LINKER_FILE=core/linker.ld
 BUILD_DIR=build
 
 # Output
-IMAGE_NAME=ash.elf
+IMAGE_NAME=ash
 
 # Files to compile
 SRC=\
@@ -33,12 +33,13 @@ OBJECTS=$(addprefix $(BUILD_DIR)/, $(SRC))
 all: image
 
 simulate: image
-	qemu-system-aarch64 -machine virt -cpu $(CPU) -kernel $(BUILD_DIR)/$(IMAGE_NAME) \
+	qemu-system-aarch64 -machine virt -cpu $(CPU) -kernel $(BUILD_DIR)/$(IMAGE_NAME).bin \
                     	-display none \
                     	-serial stdio
 
 image: build_dir $(OBJECTS)
-	$(LD) $(LD_FLAGS) -T $(LINKER_FILE) $(OBJECTS) -o $(BUILD_DIR)/$(IMAGE_NAME)
+	$(LD) $(LD_FLAGS) -T $(LINKER_FILE) $(OBJECTS) -o $(BUILD_DIR)/$(IMAGE_NAME).elf
+	$(TOOLCHAIN)-objcopy -I elf64-little -O binary $(BUILD_DIR)/$(IMAGE_NAME).elf $(BUILD_DIR)/$(IMAGE_NAME).bin
 	@echo "Compilation done!"
 
 # Assembly sources
